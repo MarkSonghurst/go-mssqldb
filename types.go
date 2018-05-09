@@ -114,6 +114,7 @@ func readTypeInfo(r *tdsBuffer) (res typeInfo) {
 	case typeNull, typeInt1, typeBit, typeInt2, typeInt4, typeDateTim4,
 		typeFlt4, typeMoney, typeDateTime, typeFlt8, typeMoney4, typeInt8:
 		// those are fixed length types
+		log.Printf("I have a fixed len type %x\n", res.TypeId)
 		switch res.TypeId {
 		case typeNull:
 			res.Size = 0
@@ -129,6 +130,7 @@ func readTypeInfo(r *tdsBuffer) (res typeInfo) {
 		res.Reader = readFixedType
 		res.Buffer = make([]byte, res.Size)
 	default: // all others are VARLENTYPE
+		log.Printf("I have a var len type %x\n", res.TypeId)
 		readVarLen(&res, r)
 	}
 	return
