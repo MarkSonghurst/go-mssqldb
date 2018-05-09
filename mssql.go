@@ -770,6 +770,7 @@ func (s *Stmt) makeParam(val driver.Value) (res Param, err error) {
 		*/
 		res.ti.TypeId = typeDateTimeN
 		res.ti.Size = 8
+		res.ti.Scale = 0
 		res.buffer = make([]byte, 8)
 		ref := time.Date(1900, 1, 1, 0, 0, 0, 0, time.UTC)
 		dur := val.Sub(ref)
