@@ -977,8 +977,8 @@ func makeGoLangScanType(ti typeInfo) reflect.Type {
 	case typeDateN:
 		return reflect.TypeOf(time.Time{})
 	case typeTimeN:
-		return reflect.TypeOf(time.Time{})
 		log.Println("makeGoLangScanType typeDateTimeOffsetN")
+		return reflect.TypeOf(time.Time{})
 	case typeDateTimeOffsetN:
 		return reflect.TypeOf(time.Time{})
 	case typeBigVarChar:
