@@ -35,24 +35,24 @@ const (
 // http://msdn.microsoft.com/en-us/library/dd358341.aspx
 const (
 	// byte len types
-	typeGuid            = 0x24
-	typeIntN            = 0x26
-	typeDecimal         = 0x37 // legacy
-	typeNumeric         = 0x3f // legacy
-	typeBitN            = 0x68
-	typeDecimalN        = 0x6a
-	typeNumericN        = 0x6c
-	typeFltN            = 0x6d
-	typeMoneyN          = 0x6e
-	typeDateTimeN       = 0x6f
-	typeDateN           = 0x28
-	typeTimeN           = 0x29
-	typeDateTime2N      = 0x2a
-	typeDateTimeOffsetN = 0x2b
-	typeChar            = 0x2f // legacy
-	typeVarChar         = 0x27 // legacy
-	typeBinary          = 0x2d // legacy
-	typeVarBinary       = 0x25 // legacy
+	typeGuid      = 0x24
+	typeIntN      = 0x26
+	typeDecimal   = 0x37 // legacy
+	typeNumeric   = 0x3f // legacy
+	typeBitN      = 0x68
+	typeDecimalN  = 0x6a
+	typeNumericN  = 0x6c
+	typeFltN      = 0x6d
+	typeMoneyN    = 0x6e
+	typeDateTimeN = 0x6f
+	typeDateN     = 0x28
+	typeTimeN     = 0x29
+	//typeDateTime2N      = 0x2a
+	//typeDateTimeOffsetN = 0x2b
+	typeChar      = 0x2f // legacy
+	typeVarChar   = 0x27 // legacy
+	typeBinary    = 0x2d // legacy
+	typeVarBinary = 0x25 // legacy
 
 	// short length types
 	typeBigVarBin  = 0xa5
@@ -162,11 +162,13 @@ func writeVarLen(w io.Writer, ti *typeInfo) (err error) {
 	switch ti.TypeId {
 	case typeDateN:
 		ti.Writer = writeByteLenType
-	case typeTimeN, typeDateTime2N, typeDateTimeOffsetN:
-		if err = binary.Write(w, binary.LittleEndian, ti.Scale); err != nil {
-			return
-		}
-		ti.Writer = writeByteLenType
+		/*
+			case typeTimeN, typeDateTime2N, typeDateTimeOffsetN:
+				if err = binary.Write(w, binary.LittleEndian, ti.Scale); err != nil {
+					return
+				}
+				ti.Writer = writeByteLenType
+		*/
 	case typeIntN, typeDecimal, typeNumeric,
 		typeBitN, typeDecimalN, typeNumericN, typeFltN,
 		typeMoneyN, typeDateTimeN, typeChar,
@@ -304,12 +306,14 @@ func readByteLenType(ti *typeInfo, r *tdsBuffer) interface{} {
 		return decodeDate(buf)
 	case typeTimeN:
 		return decodeTime(ti.Scale, buf)
-	case typeDateTime2N:
-		log.Println("readByteLenType typeDateTime2N")
-		return decodeDateTime2(ti.Scale, buf)
-	case typeDateTimeOffsetN:
-		log.Println("readByteLenType decodeDateTimeOffset")
-		return decodeDateTimeOffset(ti.Scale, buf)
+		/*
+			case typeDateTime2N:
+				log.Println("readByteLenType typeDateTime2N")
+				return decodeDateTime2(ti.Scale, buf)
+			case typeDateTimeOffsetN:
+				log.Println("readByteLenType decodeDateTimeOffset")
+				return decodeDateTimeOffset(ti.Scale, buf)
+		*/
 	case typeGuid:
 		return decodeGuid(buf)
 	case typeIntN:
@@ -563,18 +567,20 @@ func readVariantType(ti *typeInfo, r *tdsBuffer) interface{} {
 		buf := make([]byte, size-2-propbytes)
 		r.ReadFull(buf)
 		return decodeTime(scale, buf)
-	case typeDateTime2N:
-		log.Println("readVariantType typeDateTime2N")
-		scale := r.byte()
-		buf := make([]byte, size-2-propbytes)
-		r.ReadFull(buf)
-		return decodeDateTime2(scale, buf)
-	case typeDateTimeOffsetN:
-		log.Println("readVariantType typeDateTimeOffsetN")
-		scale := r.byte()
-		buf := make([]byte, size-2-propbytes)
-		r.ReadFull(buf)
-		return decodeDateTimeOffset(scale, buf)
+		/*
+			case typeDateTime2N:
+				log.Println("readVariantType typeDateTime2N")
+				scale := r.byte()
+				buf := make([]byte, size-2-propbytes)
+				r.ReadFull(buf)
+				return decodeDateTime2(scale, buf)
+			case typeDateTimeOffsetN:
+				log.Println("readVariantType typeDateTimeOffsetN")
+				scale := r.byte()
+				buf := make([]byte, size-2-propbytes)
+				r.ReadFull(buf)
+				return decodeDateTimeOffset(scale, buf)
+		*/
 	case typeBigVarBin, typeBigBinary:
 		r.uint16() // max length, ignoring
 		buf := make([]byte, size-2-propbytes)
@@ -669,26 +675,28 @@ func readVarLen(ti *typeInfo, r *tdsBuffer) {
 		ti.Size = 3
 		ti.Reader = readByteLenType
 		ti.Buffer = make([]byte, ti.Size)
-	case typeTimeN, typeDateTime2N, typeDateTimeOffsetN:
-		ti.Scale = r.byte()
-		switch ti.Scale {
-		case 0, 1, 2:
-			ti.Size = 3
-		case 3, 4:
-			ti.Size = 4
-		case 5, 6, 7:
-			ti.Size = 5
-		default:
-			badStreamPanicf("Invalid scale for TIME/DATETIME2/DATETIMEOFFSET type")
-		}
-		switch ti.TypeId {
-		case typeDateTime2N:
-			ti.Size += 3
-		case typeDateTimeOffsetN:
-			ti.Size += 5
-		}
-		ti.Reader = readByteLenType
-		ti.Buffer = make([]byte, ti.Size)
+		/*
+			case typeTimeN, typeDateTime2N, typeDateTimeOffsetN:
+				ti.Scale = r.byte()
+				switch ti.Scale {
+				case 0, 1, 2:
+					ti.Size = 3
+				case 3, 4:
+					ti.Size = 4
+				case 5, 6, 7:
+					ti.Size = 5
+				default:
+					badStreamPanicf("Invalid scale for TIME/DATETIME2/DATETIMEOFFSET type")
+				}
+				switch ti.TypeId {
+				case typeDateTime2N:
+					ti.Size += 3
+				case typeDateTimeOffsetN:
+					ti.Size += 5
+				}
+				ti.Reader = readByteLenType
+				ti.Buffer = make([]byte, ti.Size)
+		*/
 	case typeGuid, typeIntN, typeDecimal, typeNumeric,
 		typeBitN, typeDecimalN, typeNumericN, typeFltN,
 		typeMoneyN, typeDateTimeN, typeChar,
@@ -971,16 +979,19 @@ func makeGoLangScanType(ti typeInfo) reflect.Type {
 		default:
 			panic("invalid size of DATETIMEN")
 		}
-	case typeDateTime2N:
-		log.Println("makeGoLangScanType typeDateTime2N")
-		return reflect.TypeOf(time.Time{})
+		/*
+			case typeDateTime2N:
+				log.Println("makeGoLangScanType typeDateTime2N")
+				return reflect.TypeOf(time.Time{})
+		*/
 	case typeDateN:
 		return reflect.TypeOf(time.Time{})
 	case typeTimeN:
-		log.Println("makeGoLangScanType typeDateTimeOffsetN")
 		return reflect.TypeOf(time.Time{})
-	case typeDateTimeOffsetN:
-		return reflect.TypeOf(time.Time{})
+		/*
+			case typeDateTimeOffsetN:
+				return reflect.TypeOf(time.Time{})
+		*/
 	case typeBigVarChar:
 		return reflect.TypeOf("")
 	case typeBigChar:
@@ -1102,10 +1113,12 @@ func makeDecl(ti typeInfo) string {
 		default:
 			panic("invalid size of DATETIMNTYPE")
 		}
-	case typeDateTime2N:
-		return fmt.Sprintf("datetime2(%d)", ti.Scale)
-	case typeDateTimeOffsetN:
-		return fmt.Sprintf("datetimeoffset(%d)", ti.Scale)
+		/*
+			case typeDateTime2N:
+				return fmt.Sprintf("datetime2(%d)", ti.Scale)
+			case typeDateTimeOffsetN:
+				return fmt.Sprintf("datetimeoffset(%d)", ti.Scale)
+		*/
 	case typeText:
 		return "text"
 	case typeNText:
@@ -1195,15 +1208,19 @@ func makeGoLangTypeName(ti typeInfo) string {
 		default:
 			panic("invalid size of DATETIMEN")
 		}
-	case typeDateTime2N:
-		return "DATETIME2"
+		/*
+			case typeDateTime2N:
+				return "DATETIME2"
+		*/
 	case typeDateN:
 		return "DATE"
 	case typeTimeN:
 		return "TIME"
-	case typeDateTimeOffsetN:
-		log.Println("makeGoLangTypeName typeDateTimeOffsetN")
-		return "DATETIMEOFFSET"
+		/*
+			case typeDateTimeOffsetN:
+				log.Println("makeGoLangTypeName typeDateTimeOffsetN")
+				return "DATETIMEOFFSET"
+		*/
 	case typeBigVarChar:
 		return "VARCHAR"
 	case typeBigChar:
@@ -1301,14 +1318,18 @@ func makeGoLangTypeLength(ti typeInfo) (int64, bool) {
 		default:
 			panic("invalid size of DATETIMEN")
 		}
-	case typeDateTime2N:
-		return 0, false
+		/*
+			case typeDateTime2N:
+				return 0, false
+		*/
 	case typeDateN:
 		return 0, false
 	case typeTimeN:
 		return 0, false
-	case typeDateTimeOffsetN:
-		return 0, false
+		/*
+			case typeDateTimeOffsetN:
+				return 0, false
+		*/
 	case typeBigVarBin:
 		if ti.Size == 0xffff {
 			return 2147483645, true
@@ -1424,14 +1445,18 @@ func makeGoLangTypePrecisionScale(ti typeInfo) (int64, int64, bool) {
 		default:
 			panic("invalid size of DATETIMEN")
 		}
-	case typeDateTime2N:
-		return 0, 0, false
+		/*
+			case typeDateTime2N:
+				return 0, 0, false
+		*/
 	case typeDateN:
 		return 0, 0, false
 	case typeTimeN:
 		return 0, 0, false
-	case typeDateTimeOffsetN:
-		return 0, 0, false
+		/*
+			case typeDateTimeOffsetN:
+				return 0, 0, false
+		*/
 	case typeBigVarBin:
 		return 0, 0, false
 	case typeVarChar:
