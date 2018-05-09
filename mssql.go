@@ -745,7 +745,7 @@ func (s *Stmt) makeParam(val driver.Value) (res Param, err error) {
 			res.buffer[0] = 1
 		}
 	case time.Time:
-		res.ti.TypeId = typeDateTime
+		res.ti.TypeId = typeDateTimeN
 		res.ti.Size = 8
 		res.buffer = make([]byte, 8)
 		ref := time.Date(1900, 1, 1, 0, 0, 0, 0, time.UTC)
